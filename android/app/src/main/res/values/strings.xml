@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">currency-exchange-calculator</string>
-    <string name="title_activity_main">currency-exchange-calculator</string>
+    <string name="app_name">Revune E-Voucher</string>
+    <string name="title_activity_main">Revune E-Voucher</string>
     <string name="package_name">com.albayaa.currencyexchange</string>
     <string name="custom_url_scheme">com.albayaa.currencyexchange</string>
 </resources>
