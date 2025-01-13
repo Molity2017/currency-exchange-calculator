@@ -277,7 +277,7 @@ function App() {
         {/* زر تحميل التطبيق */}
         <div className="text-center mb-3">
           <a
-            href="/Revune-E-Voucher.apk"
+            href="https://revune.netlify.app/Revune-E-Voucher.apk"
             download="Revune-E-Voucher.apk"
             className="inline-flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 text-sm"
           >
