@@ -277,8 +277,8 @@ function App() {
         {/* زر تحميل التطبيق */}
         <div className="text-center mb-3">
           <a
-            href="/app-release.apk"
-            download
+            href="/Revune-E-Voucher.apk"
+            download="Revune-E-Voucher.apk"
             className="inline-flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 text-sm"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
