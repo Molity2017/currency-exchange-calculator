@@ -23,44 +23,55 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ filters }) => {
         type: 'ALL'
     });
 
-    const loadTransactions = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            // إعداد مفاتيح API
+    useEffect(() => {
+        const initializeBinanceService = () => {
             const apiKey = import.meta.env.VITE_BINANCE_API_KEY;
             const apiSecret = import.meta.env.VITE_BINANCE_API_SECRET;
-
+            
+            console.log('Environment Variables Check:', {
+                hasApiKey: !!apiKey,
+                hasApiSecret: !!apiSecret,
+                apiKeyLength: apiKey?.length,
+                apiSecretLength: apiSecret?.length
+            });
+            
             if (!apiKey || !apiSecret) {
                 throw new Error('يرجى إضافة مفاتيح API في ملف .env');
             }
 
-            binanceService.setConfig({
-                apiKey,
-                apiSecret
-            });
-
-            const data = await binanceService.getTransactionHistory();
-            if (data.length === 0) {
-                setError('لم يتم العثور على معاملات');
-            } else {
-                setTransactions(data);
+            try {
+                binanceService.setConfig({
+                    apiKey,
+                    apiSecret
+                });
+                console.log('تم تهيئة BinanceService بنجاح');
+            } catch (error) {
+                console.error('خطأ في تهيئة BinanceService:', error);
+                throw error;
             }
-        } catch (err) {
-            console.error('خطأ في تحميل المعاملات:', err);
-            setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع');
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
 
-    useEffect(() => {
-        if (!import.meta.env.VITE_BINANCE_API_KEY || !import.meta.env.VITE_BINANCE_API_SECRET) {
-            setError('يرجى إضافة مفاتيح API في ملف .env');
-            return;
-        }
-        loadTransactions();
+        const fetchTransactions = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const data = await binanceService.getTransactionHistory();
+                if (data.length === 0) {
+                    setError('لم يتم العثور على معاملات');
+                } else {
+                    setTransactions(data);
+                }
+            } catch (err) {
+                console.error('خطأ في تحميل المعاملات:', err);
+                setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        initializeBinanceService();
+        fetchTransactions();
     }, []);
 
     const filteredTransactions = transactions.filter(tx => {
@@ -71,7 +82,25 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ filters }) => {
     });
 
     const retryLoading = () => {
-        loadTransactions();
+        const fetchTransactions = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const data = await binanceService.getTransactionHistory();
+                if (data.length === 0) {
+                    setError('لم يتم العثور على معاملات');
+                } else {
+                    setTransactions(data);
+                }
+            } catch (err) {
+                console.error('خطأ في تحميل المعاملات:', err);
+                setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchTransactions();
     };
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
