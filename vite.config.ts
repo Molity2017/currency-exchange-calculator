@@ -14,31 +14,6 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path.replace(/^\/binance-api/, ''),
-        headers: {
-          'Origin': 'https://revune.netlify.app',
-          'Referer': 'https://revune.netlify.app/'
-        },
-        configure: (proxy, _options) => {
-          proxy.on('error', (err, _req, _res) => {
-            console.log('proxy error', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, _res) => {
-            // إضافة headers مطلوبة
-            proxyReq.setHeader('User-Agent', 'Mozilla/5.0');
-            console.log('Sending Request:', {
-              method: req.method,
-              url: req.url,
-              headers: proxyReq.getHeaders()
-            });
-          });
-          proxy.on('proxyRes', (proxyRes, req, _res) => {
-            console.log('Received Response:', {
-              statusCode: proxyRes.statusCode,
-              url: req.url,
-              headers: proxyRes.headers
-            });
-          });
-        },
       }
     },
     cors: true,
@@ -51,6 +26,14 @@ export default defineConfig({
   preview: {
     port: 3000,
     host: true,
-    open: true
+    open: true,
+    proxy: {
+      '/binance-api': {
+        target: 'https://api.binance.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/binance-api/, ''),
+      }
+    }
   }
 })
