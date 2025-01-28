@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { utils, read, writeFile } from 'xlsx';
+import TransactionHistory from './components/TransactionHistory';
 
 interface CalculationResult {
   totalEGP: number;
@@ -18,6 +19,7 @@ function App() {
   const [usdtAEDRate, setUsdtAEDRate] = useState('');
   const [merchantFeeRate, setMerchantFeeRate] = useState('');
   const [result, setResult] = useState<CalculationResult | null>(null);
+  const [activeTab, setActiveTab] = useState('calculator');
 
   const calculateResults = () => {
     const amountsList = amounts.split('\n')
@@ -105,172 +107,189 @@ function App() {
         
         <div className="relative bg-white backdrop-blur-sm bg-opacity-90 shadow-2xl rounded-2xl p-4 sm:p-8 lg:p-12 mx-auto border border-gray-100 mb-8">
           <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* قسم الإدخال - يمين */}
-              <div className="flex flex-col h-full space-y-6">
-                <div>
-                  <div className="relative">
-                    <label className="block text-lg font-semibold text-gray-700 text-right mb-3">
-                      المبالغ بالجنيه المصري
-                    </label>
-                    <textarea
-                      value={amounts}
-                      onChange={(e) => setAmounts(e.target.value)}
-                      className="w-full h-32 sm:h-36 p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-right shadow-sm resize-none"
-                      placeholder="أدخل المبالغ هنا (كل مبلغ في سطر جديد)"
-                      dir="rtl"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
-                      سعر USDT/EGP
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="مثال: 51.85"
-                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-right shadow-sm"
-                      value={usdtEGPRate}
-                      onChange={(e) => setUsdtEGPRate(e.target.value)}
-                      dir="rtl"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
-                      سعر AED/EGP
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="مثال: 13.72"
-                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-right shadow-sm"
-                      value={aedEGPRate}
-                      onChange={(e) => setAedEGPRate(e.target.value)}
-                      dir="rtl"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
-                      سعر USDT/AED
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="مثال: 3.67"
-                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-right shadow-sm"
-                      value={usdtAEDRate}
-                      onChange={(e) => setUsdtAEDRate(e.target.value)}
-                      dir="rtl"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
-                      عمولة التاجر (بالجنيه)
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="مثال: 0.15"
-                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-right shadow-sm"
-                      value={merchantFeeRate}
-                      onChange={(e) => setMerchantFeeRate(e.target.value)}
-                      dir="rtl"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-auto pt-6">
-                  <div className="text-center mb-4">
-                    <label className="inline-flex items-center px-6 py-2.5 bg-green-500 text-white rounded-xl cursor-pointer hover:bg-green-600 transition-all shadow-sm space-x-2 hover:scale-105 transform duration-200">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                      </svg>
-                      <input
-                        type="file"
-                        accept=".xlsx,.xls"
-                        onChange={handleExcelUpload}
-                        className="hidden"
-                      />
-                      <span>رفع ملف Excel</span>
-                    </label>
-                  </div>
-
-                  <button
-                    onClick={calculateResults}
-                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 sm:py-4 px-6 rounded-xl font-medium hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all text-lg shadow-md hover:scale-[1.02] transform duration-200"
-                  >
-                    احسب النتائج
-                  </button>
-                </div>
-              </div>
-
-              {/* قسم النتائج - يسار */}
-              <div className="bg-gradient-to-br from-gray-50 to-white p-4 sm:p-6 rounded-2xl shadow-lg flex flex-col h-full border border-gray-100">
-                {result ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                      <div className="text-gray-500 text-sm mb-1">إجمالي المبلغ (جنيه)</div>
-                      <div className="text-lg sm:text-xl font-bold text-gray-900">{result.totalEGP.toFixed(2)}</div>
-                    </div>
-
-                    <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                      <div className="text-gray-500 text-sm mb-1">كمية USDT المطلوبة</div>
-                      <div className="text-lg sm:text-xl font-bold text-gray-900">{result.requiredUSDT.toFixed(2)}</div>
-                    </div>
-
-                    <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                      <div className="text-gray-500 text-sm mb-1">إجمالي الدراهم المطلوبة</div>
-                      <div className="text-lg sm:text-xl font-bold text-gray-900">{result.totalAED.toFixed(2)}</div>
-                    </div>
-
-                    <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                      <div className="text-gray-500 text-sm mb-1">تكلفة إعادة الشراء (درهم)</div>
-                      <div className="text-lg sm:text-xl font-bold text-gray-900">{result.repurchaseCost.toFixed(2)}</div>
-                    </div>
-
-                    <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                      <div className="text-gray-500 text-sm mb-1">عمولة التاجر (درهم)</div>
-                      <div className="text-lg sm:text-xl font-bold text-gray-900">{result.merchantFee.toFixed(2)}</div>
-                    </div>
-
-                    <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                      <div className="text-gray-500 text-sm mb-1">صافي الربح (درهم)</div>
-                      <div className="text-lg sm:text-xl font-bold text-gray-900">{result.netProfit.toFixed(2)}</div>
-                    </div>
-
-                    <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow col-span-2">
-                      <div className="text-gray-500 text-sm mb-1">نسبة الربح</div>
-                      <div className="text-lg sm:text-xl font-bold text-blue-600">{result.profitPercentage.toFixed(2)}%</div>
-                    </div>
-
-                    <div className="mt-4 col-span-2">
-                      <button
-                        onClick={exportToExcel}
-                        className="w-full bg-green-500 text-white py-2.5 px-6 rounded-xl font-medium hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all shadow-md hover:scale-[1.02] transform duration-200 flex items-center justify-center space-x-2"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M13.707 6.707a1 1 0 010-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 5.414V13a1 1 0 102 0V5.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
-                        </svg>
-                        <span>تصدير النتائج إلى Excel</span>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-center text-gray-400">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-12 sm:h-16 w-12 sm:w-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                      <p className="text-base sm:text-lg">النتائج ستظهر هنا بعد الحساب</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+            <div className="flex gap-4 mb-4">
+              <button 
+                className={`px-4 py-2 rounded ${activeTab === 'calculator' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                onClick={() => setActiveTab('calculator')}>
+                الحاسبة
+              </button>
+              <button 
+                className={`px-4 py-2 rounded ${activeTab === 'history' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                onClick={() => setActiveTab('history')}>
+                سجل المعاملات
+              </button>
             </div>
+
+            {activeTab === 'calculator' ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* قسم الإدخال - يمين */}
+                <div className="flex flex-col h-full space-y-6">
+                  <div>
+                    <div className="relative">
+                      <label className="block text-lg font-semibold text-gray-700 text-right mb-3">
+                        المبالغ بالجنيه المصري
+                      </label>
+                      <textarea
+                        value={amounts}
+                        onChange={(e) => setAmounts(e.target.value)}
+                        className="w-full h-32 sm:h-36 p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-right shadow-sm resize-none"
+                        placeholder="أدخل المبالغ هنا (كل مبلغ في سطر جديد)"
+                        dir="rtl"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
+                        سعر USDT/EGP
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="مثال: 51.85"
+                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-right shadow-sm"
+                        value={usdtEGPRate}
+                        onChange={(e) => setUsdtEGPRate(e.target.value)}
+                        dir="rtl"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
+                        سعر AED/EGP
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="مثال: 13.72"
+                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-right shadow-sm"
+                        value={aedEGPRate}
+                        onChange={(e) => setAedEGPRate(e.target.value)}
+                        dir="rtl"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
+                        سعر USDT/AED
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="مثال: 3.67"
+                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-right shadow-sm"
+                        value={usdtAEDRate}
+                        onChange={(e) => setUsdtAEDRate(e.target.value)}
+                        dir="rtl"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
+                        عمولة التاجر (بالجنيه)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="مثال: 0.15"
+                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-right shadow-sm"
+                        value={merchantFeeRate}
+                        onChange={(e) => setMerchantFeeRate(e.target.value)}
+                        dir="rtl"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-auto pt-6">
+                    <div className="text-center mb-4">
+                      <label className="inline-flex items-center px-6 py-2.5 bg-green-500 text-white rounded-xl cursor-pointer hover:bg-green-600 transition-all shadow-sm space-x-2 hover:scale-105 transform duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
+                        <input
+                          type="file"
+                          accept=".xlsx,.xls"
+                          onChange={handleExcelUpload}
+                          className="hidden"
+                        />
+                        <span>رفع ملف Excel</span>
+                      </label>
+                    </div>
+
+                    <button
+                      onClick={calculateResults}
+                      className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 sm:py-4 px-6 rounded-xl font-medium hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all text-lg shadow-md hover:scale-[1.02] transform duration-200"
+                    >
+                      احسب النتائج
+                    </button>
+                  </div>
+                </div>
+
+                {/* قسم النتائج - يسار */}
+                <div className="bg-gradient-to-br from-gray-50 to-white p-4 sm:p-6 rounded-2xl shadow-lg flex flex-col h-full border border-gray-100">
+                  {result ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <div className="text-gray-500 text-sm mb-1">إجمالي المبلغ (جنيه)</div>
+                        <div className="text-lg sm:text-xl font-bold text-gray-900">{result.totalEGP.toFixed(2)}</div>
+                      </div>
+
+                      <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <div className="text-gray-500 text-sm mb-1">كمية USDT المطلوبة</div>
+                        <div className="text-lg sm:text-xl font-bold text-gray-900">{result.requiredUSDT.toFixed(2)}</div>
+                      </div>
+
+                      <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <div className="text-gray-500 text-sm mb-1">إجمالي الدراهم المطلوبة</div>
+                        <div className="text-lg sm:text-xl font-bold text-gray-900">{result.totalAED.toFixed(2)}</div>
+                      </div>
+
+                      <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <div className="text-gray-500 text-sm mb-1">تكلفة إعادة الشراء (درهم)</div>
+                        <div className="text-lg sm:text-xl font-bold text-gray-900">{result.repurchaseCost.toFixed(2)}</div>
+                      </div>
+
+                      <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <div className="text-gray-500 text-sm mb-1">عمولة التاجر (درهم)</div>
+                        <div className="text-lg sm:text-xl font-bold text-gray-900">{result.merchantFee.toFixed(2)}</div>
+                      </div>
+
+                      <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <div className="text-gray-500 text-sm mb-1">صافي الربح (درهم)</div>
+                        <div className="text-lg sm:text-xl font-bold text-gray-900">{result.netProfit.toFixed(2)}</div>
+                      </div>
+
+                      <div className="text-right bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow col-span-2">
+                        <div className="text-gray-500 text-sm mb-1">نسبة الربح</div>
+                        <div className="text-lg sm:text-xl font-bold text-blue-600">{result.profitPercentage.toFixed(2)}%</div>
+                      </div>
+
+                      <div className="mt-4 col-span-2">
+                        <button
+                          onClick={exportToExcel}
+                          className="w-full bg-green-500 text-white py-2.5 px-6 rounded-xl font-medium hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all shadow-md hover:scale-[1.02] transform duration-200 flex items-center justify-center space-x-2"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M13.707 6.707a1 1 0 010-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 5.414V13a1 1 0 102 0V5.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
+                          </svg>
+                          <span>تصدير النتائج إلى Excel</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 sm:h-16 w-12 sm:w-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        <p className="text-base sm:text-lg">النتائج ستظهر هنا بعد الحساب</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <TransactionHistory />
+            )}
           </div>
         </div>
 
