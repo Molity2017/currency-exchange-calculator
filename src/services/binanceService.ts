@@ -20,18 +20,33 @@ class BinanceService {
         }
 
         const timestamp = Date.now();
-        const queryString = `timestamp=${timestamp}&recvWindow=60000&tradeType="BUY,SELL"&page=1&rows=100`;
+        // تحديث المعلمات حسب API الجديد
+        const queryParams = {
+            timestamp,
+            recvWindow: 60000,
+            page: 1,
+            rows: 100,
+            tradeType: 'BUY,SELL'
+        };
+
+        // إنشاء سلسلة الاستعلام
+        const queryString = Object.entries(queryParams)
+            .map(([key, value]) => `${key}=${value}`)
+            .join('&');
+
+        // توقيع HMAC SHA256
         const signature = this.generateSignature(queryString);
 
         try {
-            console.log('Sending request to Binance API:', {
-                url: `${this.baseUrl}/v1/c2c/orderMatch/listUserOrderHistory`,
+            console.log('إرسال طلب إلى Binance API:', {
+                baseUrl: this.baseUrl,
+                endpoint: '/sapi/v1/c2c/orderMatch/listUserOrderHistory',
                 timestamp,
                 signature: signature.slice(0, 10) + '...'
             });
 
             const response = await axios.get(
-                `${this.baseUrl}/v1/c2c/orderMatch/listUserOrderHistory?${queryString}&signature=${signature}`,
+                `${this.baseUrl}/sapi/v1/c2c/orderMatch/listUserOrderHistory?${queryString}&signature=${signature}`,
                 {
                     headers: {
                         'X-MBX-APIKEY': this.config.apiKey,
@@ -40,7 +55,7 @@ class BinanceService {
                 }
             );
 
-            console.log('Response received:', {
+            console.log('استلام استجابة:', {
                 status: response.status,
                 hasData: !!response.data,
                 dataLength: response.data?.length
@@ -59,20 +74,18 @@ class BinanceService {
                     throw new Error('البيانات المستلمة ليست في الشكل المتوقع');
                 }
 
-                const transactions = this.transformTransactions(transactionsData);
-                console.log(`تم تحويل ${transactions.length} معاملة بنجاح`);
-                return transactions;
+                return this.transformTransactions(transactionsData);
             }
 
             throw new Error('فشل في استرداد البيانات من Binance API');
         } catch (error) {
             if (error instanceof AxiosError) {
-                console.error('Binance API Error:', {
+                console.error('خطأ في Binance API:', {
                     status: error.response?.status,
                     data: error.response?.data,
                     message: error.message
                 });
-                
+
                 if (error.response?.status === 403) {
                     throw new Error('غير مصرح بالوصول. يرجى التحقق من صحة مفاتيح API');
                 }
@@ -86,11 +99,7 @@ class BinanceService {
                 throw new Error(`خطأ في الاتصال: ${errorMessage}`);
             }
 
-            if (error instanceof Error) {
-                throw error;
-            }
-
-            throw new Error('حدث خطأ غير متوقع أثناء الاتصال');
+            throw error;
         }
     }
 
