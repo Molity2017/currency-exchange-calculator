@@ -90,31 +90,63 @@ class BinanceService {
 
     private transformTransactions(apiTransactions: any[]): BinanceTransaction[] {
         return apiTransactions.map(transaction => {
-            // تحويل نوع المعاملة إلى القيم المتوقعة
-            const tradeType = transaction.tradeType?.toUpperCase() === 'BUY' ? TradeType.BUY : TradeType.SELL;
-            
-            // تحويل حالة الطلب إلى القيم المتوقعة
-            let orderStatus = OrderStatus.UNKNOWN;
-            const status = transaction.orderStatus?.toUpperCase();
-            if (Object.values(OrderStatus).includes(status)) {
-                orderStatus = status as OrderStatus;
-            }
+            try {
+                // تحويل نوع المعاملة
+                const rawTradeType = String(transaction.tradeType || '').toUpperCase();
+                if (!rawTradeType || ![TradeType.BUY, TradeType.SELL].includes(rawTradeType as TradeType)) {
+                    console.warn('نوع معاملة غير صالح:', rawTradeType);
+                    return null;
+                }
 
-            return {
-                id: transaction.orderNumber || String(Date.now()),
-                date: new Date(transaction.createTime || Date.now()),
-                type: tradeType,
-                status: orderStatus,
-                amount: parseFloat(transaction.amount || '0'),
-                fiat: transaction.fiat || 'EGP',
-                asset: transaction.asset || 'USDT',
-                price: transaction.unitPrice || 0,
-                totalPrice: parseFloat(transaction.totalPrice || '0'),
-                commission: transaction.commission || 0,
-                counterParty: transaction.counterPartNickName || '',
-                payMethod: transaction.payMethodName || ''
-            };
-        }).filter(tx => tx.amount > 0); // تجاهل المعاملات التي ليس لها مبلغ
+                // تحويل حالة الطلب
+                const rawOrderStatus = String(transaction.orderStatus || '').toUpperCase();
+                if (!rawOrderStatus || !Object.values(OrderStatus).includes(rawOrderStatus as OrderStatus)) {
+                    console.warn('حالة طلب غير صالحة:', rawOrderStatus);
+                    return null;
+                }
+
+                // تحويل التاريخ
+                const createTime = transaction.createTime ? new Date(transaction.createTime) : new Date();
+                if (isNaN(createTime.getTime())) {
+                    console.warn('تاريخ غير صالح:', transaction.createTime);
+                    return null;
+                }
+
+                // تحويل القيم العددية
+                const amount = parseFloat(transaction.amount || '0');
+                const price = parseFloat(String(transaction.unitPrice || '0'));
+                const totalPrice = parseFloat(transaction.totalPrice || '0');
+                const commission = parseFloat(String(transaction.commission || '0'));
+
+                if (isNaN(amount) || isNaN(price) || isNaN(totalPrice) || isNaN(commission)) {
+                    console.warn('قيم عددية غير صالحة في المعاملة:', {
+                        amount,
+                        price,
+                        totalPrice,
+                        commission
+                    });
+                    return null;
+                }
+
+                return {
+                    id: transaction.orderNumber || String(Date.now()),
+                    date: createTime,
+                    type: rawTradeType as TradeType,
+                    status: rawOrderStatus as OrderStatus,
+                    amount,
+                    fiat: transaction.fiat || 'EGP',
+                    asset: transaction.asset || 'USDT',
+                    price,
+                    totalPrice,
+                    commission,
+                    counterParty: transaction.counterPartNickName || '',
+                    payMethod: transaction.payMethodName || ''
+                };
+            } catch (error) {
+                console.error('خطأ في تحويل المعاملة:', error);
+                return null;
+            }
+        }).filter((tx): tx is BinanceTransaction => tx !== null);
     }
 }
 

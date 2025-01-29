@@ -1,23 +1,27 @@
 // تعريف القيم المحتملة لحالة الطلب
-export enum OrderStatus {
-    ACCEPTED = 'ACCEPTED',
-    CANCELLED = 'CANCELLED',
-    CANCELLING = 'CANCELLING',
-    CLOSING = 'CLOSING',
-    DUPLICATE_CANCEL = 'DUPLICATE_CANCEL',
-    ENDED = 'ENDED',
-    FILLED = 'FILLED',
-    NO_ORDER = 'NO_ORDER',
-    OPEN = 'OPEN',
-    REJECTED = 'REJECTED',
-    UNKNOWN = 'UNKNOWN'
-}
+export const OrderStatus = {
+    ACCEPTED: 'ACCEPTED',
+    CANCELLED: 'CANCELLED',
+    CANCELLING: 'CANCELLING',
+    CLOSING: 'CLOSING',
+    DUPLICATE_CANCEL: 'DUPLICATE_CANCEL',
+    ENDED: 'ENDED',
+    FILLED: 'FILLED',
+    NO_ORDER: 'NO_ORDER',
+    OPEN: 'OPEN',
+    REJECTED: 'REJECTED',
+    UNKNOWN: 'UNKNOWN'
+} as const;
+
+export type OrderStatus = typeof OrderStatus[keyof typeof OrderStatus];
 
 // تعريف أنواع المعاملات
-export enum TradeType {
-    BUY = 'BUY',
-    SELL = 'SELL'
-}
+export const TradeType = {
+    BUY: 'BUY',
+    SELL: 'SELL'
+} as const;
+
+export type TradeType = typeof TradeType[keyof typeof TradeType];
 
 // واجهة لتكوين API
 export interface BinanceConfig {
@@ -51,6 +55,7 @@ export interface BinanceApiTransaction {
 // واجهة استجابة API
 export interface BinanceApiResponse {
     data: BinanceApiTransaction[];
+    success: boolean;
 }
 
 // واجهة المعاملة المحولة للتطبيق
