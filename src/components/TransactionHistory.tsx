@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { binanceService } from '../services/binanceService';
 import { BinanceTransaction, TradeType } from '../types/binance';
+import Chat from './Chat';
+import ChatBubble from './ChatBubble';
 
 interface TransactionHistoryProps {
     filters?: {
@@ -14,6 +16,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ filters = { typ
     const [transactions, setTransactions] = useState<BinanceTransaction[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [activeChatOrderNo, setActiveChatOrderNo] = useState<string | null>(null);
 
     useEffect(() => {
         const initializeBinanceService = () => {
@@ -119,6 +122,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ filters = { typ
                             <th className="border p-2">العمولة</th>
                             <th className="border p-2">الطرف الآخر</th>
                             <th className="border p-2">طريقة الدفع</th>
+                            <th className="border p-2">المحادثة</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -134,11 +138,23 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ filters = { typ
                                 <td className="border p-2 text-right">{tx.commission.toFixed(2)}</td>
                                 <td className="border p-2 text-right">{tx.counterParty}</td>
                                 <td className="border p-2 text-right">{tx.payMethod}</td>
+                                <td className="border p-2 text-right">
+                                    <ChatBubble
+                                        orderNo={tx.id}
+                                        onClick={() => setActiveChatOrderNo(tx.id)}
+                                    />
+                                </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+            {activeChatOrderNo && (
+                <Chat
+                    orderNo={activeChatOrderNo}
+                    onClose={() => setActiveChatOrderNo(null)}
+                />
+            )}
         </div>
     );
 };
