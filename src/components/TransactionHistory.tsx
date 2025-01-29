@@ -1,34 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { binanceService } from '../services/binanceService';
-import { BinanceTransaction, TransactionFilters } from '../types/binance';
-
-interface ImportMetaEnv {
-    readonly VITE_BINANCE_API_KEY: string;
-    readonly VITE_BINANCE_API_SECRET: string;
-}
-
-interface ImportMeta {
-    readonly env: ImportMetaEnv;
-}
+import { BinanceTransaction, TradeType } from '../types/binance';
 
 interface TransactionHistoryProps {
-    filters?: TransactionFilters;
+    filters?: {
+        type?: TradeType | 'ALL';
+        minRate?: number;
+        maxRate?: number;
+    };
 }
 
-const TransactionHistory: React.FC<TransactionHistoryProps> = ({ filters }) => {
+const TransactionHistory: React.FC<TransactionHistoryProps> = ({ filters = { type: 'ALL' } }) => {
     const [transactions, setTransactions] = useState<BinanceTransaction[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [filtersState, setFiltersState] = useState<TransactionFilters>({
-        type: 'ALL'
-    });
 
     useEffect(() => {
         const initializeBinanceService = () => {
             const apiKey = import.meta.env.VITE_BINANCE_API_KEY;
             const apiSecret = import.meta.env.VITE_BINANCE_API_SECRET;
             
-            console.log('Environment Variables Check:', {
+            console.log('فحص متغيرات البيئة:', {
                 hasApiKey: !!apiKey,
                 hasApiSecret: !!apiSecret,
                 apiKeyLength: apiKey?.length,
@@ -57,10 +49,10 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ filters }) => {
                 setError(null);
 
                 const data = await binanceService.getTransactionHistory();
+                setTransactions(data);
+                
                 if (data.length === 0) {
                     setError('لم يتم العثور على معاملات');
-                } else {
-                    setTransactions(data);
                 }
             } catch (err) {
                 console.error('خطأ في تحميل المعاملات:', err);
@@ -75,56 +67,34 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ filters }) => {
     }, []);
 
     const filteredTransactions = transactions.filter(tx => {
-        if (filtersState.type && filtersState.type !== 'ALL' && tx.type !== filtersState.type) return false;
-        if (filtersState.minRate && tx.effectiveRate < filtersState.minRate) return false;
-        if (filtersState.maxRate && tx.effectiveRate > filtersState.maxRate) return false;
+        if (filters.type && filters.type !== 'ALL' && tx.type !== filters.type) {
+            return false;
+        }
+
+        const rate = tx.totalPrice / tx.amount;
+        
+        if (filters.minRate && rate < filters.minRate) {
+            return false;
+        }
+        
+        if (filters.maxRate && rate > filters.maxRate) {
+            return false;
+        }
+        
         return true;
     });
 
-    const retryLoading = () => {
-        const fetchTransactions = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-
-                const data = await binanceService.getTransactionHistory();
-                if (data.length === 0) {
-                    setError('لم يتم العثور على معاملات');
-                } else {
-                    setTransactions(data);
-                }
-            } catch (err) {
-                console.error('خطأ في تحميل المعاملات:', err);
-                setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchTransactions();
-    };
-
-    const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setFiltersState({...filtersState, type: e.target.value as 'BUY' | 'SELL' | 'ALL'});
-    };
-
     if (loading) {
-        return (
-            <div className="text-center p-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                <p>جاري تحميل المعاملات...</p>
-            </div>
-        );
+        return <div className="p-4 text-center">جاري التحميل...</div>;
     }
 
     if (error) {
         return (
-            <div className="text-center p-8">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                    <p className="text-red-600">{error}</p>
-                </div>
+            <div className="p-4">
+                <div className="text-red-500 mb-4">{error}</div>
                 <button 
-                    onClick={retryLoading}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+                    onClick={() => window.location.reload()}
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                 >
                     إعادة المحاولة
                 </button>
@@ -134,56 +104,41 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ filters }) => {
 
     return (
         <div className="p-4">
-            <h2 className="text-2xl font-bold mb-4 text-right">سجل المعاملات</h2>
-            
-            {/* Filters */}
-            <div className="mb-4 flex gap-4 justify-end">
-                <select 
-                    className="border p-2 rounded"
-                    value={filtersState.type}
-                    onChange={handleFilterChange}>
-                    <option value="ALL">كل المعاملات</option>
-                    <option value="BUY">شراء</option>
-                    <option value="SELL">بيع</option>
-                </select>
-            </div>
-
-            {filteredTransactions.length === 0 ? (
-                <div className="text-center p-4 text-gray-500">
-                    لا توجد معاملات للعرض
-                </div>
-            ) : (
-                <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                        <thead>
-                            <tr className="bg-gray-100">
-                                <th className="border p-2 text-right">التاريخ</th>
-                                <th className="border p-2 text-right">النوع</th>
-                                <th className="border p-2 text-right">المبلغ (جنيه)</th>
-                                <th className="border p-2 text-right">المبلغ (USDT)</th>
-                                <th className="border p-2 text-right">الريت الفعلي</th>
-                                <th className="border p-2 text-right">ريت بينانس</th>
-                                <th className="border p-2 text-right">الفرق</th>
-                                <th className="border p-2 text-right">الرسوم</th>
+            <h2 className="text-xl mb-4">سجل المعاملات</h2>
+            <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border">
+                    <thead>
+                        <tr className="bg-gray-100">
+                            <th className="border p-2">التاريخ</th>
+                            <th className="border p-2">النوع</th>
+                            <th className="border p-2">الحالة</th>
+                            <th className="border p-2">المبلغ</th>
+                            <th className="border p-2">العملة</th>
+                            <th className="border p-2">السعر</th>
+                            <th className="border p-2">الإجمالي</th>
+                            <th className="border p-2">العمولة</th>
+                            <th className="border p-2">الطرف الآخر</th>
+                            <th className="border p-2">طريقة الدفع</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredTransactions.map((tx, index) => (
+                            <tr key={index} className="hover:bg-gray-50">
+                                <td className="border p-2 text-right">{tx.date.toLocaleString()}</td>
+                                <td className="border p-2 text-right">{tx.type === TradeType.BUY ? 'شراء' : 'بيع'}</td>
+                                <td className="border p-2 text-right">{tx.status}</td>
+                                <td className="border p-2 text-right">{tx.amount.toFixed(2)}</td>
+                                <td className="border p-2 text-right">{tx.asset}</td>
+                                <td className="border p-2 text-right">{tx.price.toFixed(2)} {tx.fiat}</td>
+                                <td className="border p-2 text-right">{tx.totalPrice.toFixed(2)} {tx.fiat}</td>
+                                <td className="border p-2 text-right">{tx.commission.toFixed(2)}</td>
+                                <td className="border p-2 text-right">{tx.counterParty}</td>
+                                <td className="border p-2 text-right">{tx.payMethod}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {filteredTransactions.map((tx, index) => (
-                                <tr key={index} className="hover:bg-gray-50">
-                                    <td className="border p-2 text-right">{new Date(tx.date).toLocaleString('ar-EG')}</td>
-                                    <td className="border p-2 text-right">{tx.type === 'BUY' ? 'شراء' : 'بيع'}</td>
-                                    <td className="border p-2 text-right">{tx.egyptianAmount.toFixed(2)}</td>
-                                    <td className="border p-2 text-right">{tx.usdAmount.toFixed(2)}</td>
-                                    <td className="border p-2 text-right">{tx.effectiveRate.toFixed(2)}</td>
-                                    <td className="border p-2 text-right">{tx.binanceRate.toFixed(2)}</td>
-                                    <td className="border p-2 text-right">{tx.difference.toFixed(2)}</td>
-                                    <td className="border p-2 text-right">{tx.fees.toFixed(2)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 };
