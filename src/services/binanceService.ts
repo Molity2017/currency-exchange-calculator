@@ -1,4 +1,4 @@
-import { BinanceTransaction, BinanceConfig, BinanceApiTransaction, BinanceApiResponse, TradeType } from '../types/binance';
+import { BinanceTransaction, BinanceConfig, BinanceApiTransaction, BinanceApiResponse, TradeType, OrderStatus } from '../types/binance';
 import axios, { AxiosError } from 'axios';
 import CryptoJS from 'crypto-js';
 
@@ -88,21 +88,33 @@ class BinanceService {
         return CryptoJS.HmacSHA256(queryString, this.config.apiSecret).toString(CryptoJS.enc.Hex);
     }
 
-    private transformTransactions(apiTransactions: BinanceApiTransaction[]): BinanceTransaction[] {
-        return apiTransactions.map(transaction => ({
-            id: transaction.orderNumber,
-            date: new Date(transaction.createTime),
-            type: transaction.tradeType,
-            status: transaction.orderStatus,
-            amount: parseFloat(transaction.amount),
-            fiat: transaction.fiat,
-            asset: transaction.asset,
-            price: transaction.unitPrice,
-            totalPrice: parseFloat(transaction.totalPrice),
-            commission: transaction.commission,
-            counterParty: transaction.counterPartNickName,
-            payMethod: transaction.payMethodName
-        }));
+    private transformTransactions(apiTransactions: any[]): BinanceTransaction[] {
+        return apiTransactions.map(transaction => {
+            // تحويل نوع المعاملة إلى القيم المتوقعة
+            const tradeType = transaction.tradeType?.toUpperCase() === 'BUY' ? TradeType.BUY : TradeType.SELL;
+            
+            // تحويل حالة الطلب إلى القيم المتوقعة
+            let orderStatus = OrderStatus.UNKNOWN;
+            const status = transaction.orderStatus?.toUpperCase();
+            if (Object.values(OrderStatus).includes(status)) {
+                orderStatus = status as OrderStatus;
+            }
+
+            return {
+                id: transaction.orderNumber || String(Date.now()),
+                date: new Date(transaction.createTime || Date.now()),
+                type: tradeType,
+                status: orderStatus,
+                amount: parseFloat(transaction.amount || '0'),
+                fiat: transaction.fiat || 'EGP',
+                asset: transaction.asset || 'USDT',
+                price: transaction.unitPrice || 0,
+                totalPrice: parseFloat(transaction.totalPrice || '0'),
+                commission: transaction.commission || 0,
+                counterParty: transaction.counterPartNickName || '',
+                payMethod: transaction.payMethodName || ''
+            };
+        }).filter(tx => tx.amount > 0); // تجاهل المعاملات التي ليس لها مبلغ
     }
 }
 
