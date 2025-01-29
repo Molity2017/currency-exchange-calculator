@@ -111,33 +111,56 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ filters = { typ
             <div className="overflow-x-auto">
                 <table className="min-w-full bg-white border">
                     <thead>
-                        <tr className="bg-gray-100">
-                            <th className="border p-2">التاريخ</th>
+                        <tr>
+                            <th className="border p-2">رقم المعاملة</th>
                             <th className="border p-2">النوع</th>
                             <th className="border p-2">الحالة</th>
                             <th className="border p-2">المبلغ</th>
-                            <th className="border p-2">العملة</th>
+                            <th className="border p-2">السعر الإجمالي</th>
                             <th className="border p-2">السعر</th>
-                            <th className="border p-2">الإجمالي</th>
                             <th className="border p-2">العمولة</th>
                             <th className="border p-2">الطرف الآخر</th>
                             <th className="border p-2">طريقة الدفع</th>
+                            <th className="border p-2">التاريخ</th>
                             <th className="border p-2">المحادثة</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredTransactions.map((tx, index) => (
-                            <tr key={index} className="hover:bg-gray-50">
-                                <td className="border p-2 text-right">{tx.date.toLocaleString()}</td>
-                                <td className="border p-2 text-right">{tx.type === TradeType.BUY ? 'شراء' : 'بيع'}</td>
-                                <td className="border p-2 text-right">{tx.status}</td>
-                                <td className="border p-2 text-right">{tx.amount.toFixed(2)}</td>
-                                <td className="border p-2 text-right">{tx.asset}</td>
-                                <td className="border p-2 text-right">{tx.price.toFixed(2)} {tx.fiat}</td>
-                                <td className="border p-2 text-right">{tx.totalPrice.toFixed(2)} {tx.fiat}</td>
-                                <td className="border p-2 text-right">{tx.commission.toFixed(2)}</td>
+                        {filteredTransactions.map((tx) => (
+                            <tr key={tx.id}>
+                                <td className="border p-2 text-right">{tx.id}</td>
+                                <td className="border p-2 text-right">
+                                    <span className={`px-2 py-1 rounded ${
+                                        tx.type === TradeType.BUY 
+                                            ? 'bg-green-100 text-green-800' 
+                                            : 'bg-red-100 text-red-800'
+                                    }`}>
+                                        {tx.type === TradeType.BUY ? 'شراء' : 'بيع'}
+                                    </span>
+                                </td>
+                                <td className="border p-2 text-right">
+                                    <span className={`px-2 py-1 rounded ${
+                                        tx.status === 'FILLED' 
+                                            ? 'bg-green-100 text-green-800'
+                                            : tx.status === 'CANCELLED' 
+                                            ? 'bg-red-100 text-red-800'
+                                            : 'bg-yellow-100 text-yellow-800'
+                                    }`}>
+                                        {tx.status === 'FILLED' ? 'مكتمل' 
+                                         : tx.status === 'CANCELLED' ? 'ملغي'
+                                         : tx.status === 'PENDING' ? 'معلق'
+                                         : 'قيد المعالجة'}
+                                    </span>
+                                </td>
+                                <td className="border p-2 text-right">{tx.amount.toFixed(2)} USDT</td>
+                                <td className="border p-2 text-right">{tx.totalPrice.toFixed(2)} EGP</td>
+                                <td className="border p-2 text-right">{tx.rate.toFixed(2)} EGP/USDT</td>
+                                <td className="border p-2 text-right">{tx.commission.toFixed(2)} EGP</td>
                                 <td className="border p-2 text-right">{tx.counterParty}</td>
                                 <td className="border p-2 text-right">{tx.payMethod}</td>
+                                <td className="border p-2 text-right">
+                                    {new Date(tx.createTime).toLocaleString('ar-EG')}
+                                </td>
                                 <td className="border p-2 text-right">
                                     <ChatBubble
                                         orderNo={tx.id}
