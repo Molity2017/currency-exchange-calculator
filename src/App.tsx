@@ -420,25 +420,25 @@ function App() {
                     </div>
 
                     <div className="mt-4 col-span-2">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="flex justify-center gap-4">
                         <button
                           onClick={handleExport}
-                          className="w-full bg-green-500 text-white py-2.5 px-6 rounded-xl font-medium hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all shadow-md hover:scale-[1.02] transform duration-200 flex items-center justify-center space-x-2"
+                          className="bg-green-500 text-white py-2.5 px-6 rounded-xl font-medium hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all shadow-md hover:scale-[1.02] transform duration-200 flex items-center justify-center space-x-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M3.293 6.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                            <path fillRule="evenodd" d="M13.707 6.707a1 1 0 010-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 5.414V13a1 1 0 102 0V5.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
                           </svg>
-                          <span>تصدير إلى Excel</span>
+                          <span>تصدير النتائج إلى Excel</span>
                         </button>
 
                         <button
                           onClick={handleClearMemory}
-                          className="w-full bg-red-500 text-white py-2.5 px-6 rounded-xl font-medium hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all shadow-md hover:scale-[1.02] transform duration-200 flex items-center justify-center space-x-2"
+                          className="bg-gray-500 text-white py-2.5 px-6 rounded-xl font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all shadow-md hover:scale-[1.02] transform duration-200 flex items-center justify-center space-x-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2H9.382l-.724 1.447A1 1 0 0011 3.378V9a2 2 0 01-2 2z" clipRule="evenodd" />
+                            <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                           </svg>
-                          <span>مسح الذاكرة</span>
+                          <span>مسح البيانات</span>
                         </button>
                       </div>
                     </div>
